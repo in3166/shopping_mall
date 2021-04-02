@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Typography, Button, Form, Input } from 'antd';
 import FileUpload from '../../utils/FileUpload'
+import Axios from 'axios';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -14,7 +15,7 @@ const Continents = [
     { key: 7, value: 'Antarctica' },
 ];
 
-function UploadProductPage() {
+function UploadProductPage(props) {
     const [Name, setName] = useState('');
     const [Description, setDescription] = useState('');
     const [Price, setPrice] = useState(0);
@@ -34,7 +35,37 @@ function UploadProductPage() {
         setContinent(e.currentTarget.value);
     }
     const updateImages = (newImages) => {
+        console.log(newImages)
         setImages(newImages)
+    }
+    const submitHandler = (e) => {
+        e.preventDefault();
+
+        if (!Name || !Description || !Price || !Continent || !Images) {
+            alert('모든 값을 넣어주세요.');
+        } else {
+
+
+
+            const body = {
+                writer: props.user.userData._id, // 상위 컴포넌트 auth에서 가져옴
+                title: Name,
+                description: Description,
+                price: Price,
+                images: Images,
+                continenets: Continent
+            }
+
+            Axios.post("/api/product", body)
+                .then(res => {
+                    if (res.data.success) {
+                        alert('상품 업로드 성공');
+                        props.history.push('/');
+                    } else {
+                        alert('상품 업로드 실패')
+                    }
+                })
+        }
     }
 
     return (
@@ -43,7 +74,7 @@ function UploadProductPage() {
                 <Title level={2}>여행 상품 업로드</Title>
             </div>
 
-            <Form>
+            <Form onSubmit={submitHandler}>
                 {/* Drop Zone: 업로드 부분 util에 컴포넌트로 분리 */}
                 <FileUpload refreshFunction={updateImages} />
                 <br />
@@ -69,7 +100,7 @@ function UploadProductPage() {
                 </select>
                 <br />
                 <br />
-                <Button>
+                <Button htmlType="submit">
                     확인
                 </Button>
             </Form>

@@ -19,7 +19,7 @@ function FileUpload(props) {
                 if (res.data.success) {
                     // 원래 Images가 가지고 있는 것을 넣고 합침 spread operator
                     setImages([...Images, res.data.filePath]);
-                    props.refreshFunction(Images);
+                    props.refreshFunction([...Images, res.data.filePath]);
                 } else {
                     alert('파일 저장 실패');
                 }
@@ -30,6 +30,7 @@ function FileUpload(props) {
         const currentIndex = Images.indexOf(image);
         let newImages = [...Images];
         newImages.splice(currentIndex, 1);
+
         setImages(newImages);
         props.refreshFunction(newImages);
     }
