@@ -3,12 +3,18 @@ import React, { useEffect, useState } from 'react';
 import { Icon, Col, Card, Row } from "antd";
 import Meta from 'antd/lib/card/Meta';
 import ImageSlider from '../../utils/ImageSlider';
+import CheckBox from './Sections/CheckBox';
+import { continents } from './Sections/Datas';
 
 function LandingPage() {
     const [Product, setProduct] = useState([]);
     const [Skip, setSkip] = useState(0); // Mongo db에서 어디서 부터 가져올지
     const [Limit, setLimit] = useState(8); // 최대 몇개 씩 가져올지
     const [PostSize, setPostSize] = useState(0); // 갖고 오는 상품들의 개수가 limit 보다 작으면 더 가져올게 없는거임
+    const [Filters, setFilters] = useState({
+        continents: [],
+        price: [],
+    })
 
     useEffect(() => {
         // 8개만 가져오기
@@ -62,6 +68,22 @@ function LandingPage() {
         </Col>
     })
 
+    const showFilteredResults = (filters) => {
+        let body = {
+            skip: 0,
+            limit: Limit,
+            filters: filters
+        }
+        getProducts(body);
+        setSkip(0);
+    }
+
+    const handleFilters = (filters, category) => {
+        const newFilters = { ...Filters };
+        newFilters[category] = filters;
+        showFilteredResults(newFilters);
+    }
+
     return (
         <div style={{ width: '75%', margin: '3rem auto' }}>
             <div style={{ textAlign: 'center' }}>
@@ -69,6 +91,10 @@ function LandingPage() {
             </div>
 
             {/* Filter */}
+            {/* Check box */}
+            <CheckBox list={continents} handleFilters={filters => handleFilters(filters, "continents")} />
+            {/* Radio Box */}
+
 
             {/* Search */}
 

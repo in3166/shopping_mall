@@ -1,6 +1,8 @@
 # shopping_mall
 React + Express + MongoDB 
 
+cd C:/Users/yu/Desktop/study/react/inflearn/shopping_mall
+
 ## 주의 사항
 
 ```html

@@ -40,8 +40,16 @@ router.post("/products", (req, res) => {
     let limit = req.body.limit ? parseInt(req.body.limit) : 20;
     let skip = req.body.skip ? parseInt(req.body.skip) : 0;
 
+    let findArgs = {};
+    for (let key in req.body.filters) {
+        // key: continents or price
+        if (req.body.filters[key].length > 0) {
+            findArgs[key] = req.body.filters[key];
+        }
+    }
+
     // product collection 모든 정보 가져오기
-    Product.find()
+    Product.find(findArgs)
         .populate('writer')
         .skip(skip)
         .limit(limit)
