@@ -39,6 +39,7 @@ router.post("/", (req, res) => {
 router.post("/products", (req, res) => {
     let limit = req.body.limit ? parseInt(req.body.limit) : 20;
     let skip = req.body.skip ? parseInt(req.body.skip) : 0;
+    let term = req.body.searchTerm;
 
     let findArgs = {};
     for (let key in req.body.filters) {
@@ -58,17 +59,33 @@ router.post("/products", (req, res) => {
         }
     }
 
-    // product collection 모든 정보 가져오기
-    Product.find(findArgs)
-        .populate('writer')
-        .skip(skip)
-        .limit(limit)
-        .exec((err, productInfo) => {
-            if (err) {
-                return res.status(400).json({ success: false, err })
-            }
-            res.status(200).json({ success: true, productInfo, postSize: productInfo.length });
-        });
+    if (term) {
+        Product.find(findArgs)
+            .find({ $text: { $search: term } }) // docs.mongodb.com/muanual/reference/operator/query/text
+            .populate('writer')
+            .skip(skip)
+            .limit(limit)
+            .exec((err, productInfo) => {
+                if (err) {
+                    return res.status(400).json({ success: false, err })
+                }
+                // console.log(productInfo.length)
+                res.status(200).json({ success: true, productInfo, postSize: productInfo.length });
+            });
+    } else {
+        //console.log("skip: ", skip, " / limit: ", limit, " / findArgs: ", findArgs)
+        // product collection 모든 정보 가져오기
+        Product.find(findArgs)
+            .populate('writer')
+            .skip(skip)
+            .limit(limit)
+            .exec((err, productInfo) => {
+                if (err) {
+                    return res.status(400).json({ success: false, err })
+                }
+                res.status(200).json({ success: true, productInfo, postSize: productInfo.length });
+            });
+    }
 });
 
 

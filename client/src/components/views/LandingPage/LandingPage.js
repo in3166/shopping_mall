@@ -1,10 +1,11 @@
 import Axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { Icon, Col, Card, Row } from "antd";
+import { Icon, Col, Card, Row, } from "antd";
 import Meta from 'antd/lib/card/Meta';
 import ImageSlider from '../../utils/ImageSlider';
 import CheckBox from './Sections/CheckBox';
 import RadioBox from './Sections/RadioBox';
+import SearchBar from './Sections/SearchBar';
 import { continents, price } from './Sections/Datas';
 
 function LandingPage() {
@@ -16,6 +17,7 @@ function LandingPage() {
         continents: [],
         price: [],
     })
+    const [SearchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         // 8개만 가져오기
@@ -28,20 +30,23 @@ function LandingPage() {
     }, [])
 
     const getProducts = (body) => {
-
         Axios.post('/api/product/products', body)
             .then(res => {
                 if (res.data.success) {
                     if (body.loadMore) {
+                        console.log(res.data.productInfo)
                         setProduct([...Product, ...res.data.productInfo]);
                     } else {
+                        console.log(res.data.productInfo)
                         setProduct(res.data.productInfo.slice(0, 8)); // if가 없으면 원래 있던 리스트 없어짐 -> 다음 페이지처럼
-                        setPostSize(res.data.postSize);
+                        if (body.limit === 0)
+                            setPostSize(res.data.postSize);
                     }
                 } else {
                     alert('상품 정보 가져오기 실패')
                 }
             })
+            .catch(err => console.log(err))
     };
     // 더보기 버튼 클릭
     const loadmoreHandler = () => {
@@ -49,8 +54,10 @@ function LandingPage() {
         let body = {
             skip: skip,
             limit: Limit,
-            loadMore: true
+            loadMore: true,
+            filters: Filters
         }
+        console.log("skip: ", skip, " / limit: ", body.limit)
         getProducts(body);
         setSkip(skip);
     }
@@ -78,6 +85,7 @@ function LandingPage() {
         getProducts(body);
         setSkip(0);
     }
+
     const handlePrice = (value) => {
         const data = price;
         let array = [];
@@ -102,6 +110,19 @@ function LandingPage() {
         setFilters(newFilters);
     }
 
+    const updateSearchTerm = (newSearchTerm) => {
+        let newLimit = newSearchTerm === "" ? 0 : Limit;
+        let body = {
+            skip: 0,
+            limit: newLimit,
+            filter: Filters,
+            searchTerm: newSearchTerm
+        }
+        setSkip(0);
+        setSearchTerm(newSearchTerm);
+        getProducts(body);
+    }
+
     return (
         <div style={{ width: '75%', margin: '3rem auto' }}>
             <div style={{ textAlign: 'center' }}>
@@ -121,6 +142,9 @@ function LandingPage() {
             </Row>
 
             {/* Search */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem auto' }}>
+                <SearchBar refreshFunction={updateSearchTerm} />
+            </div>
 
             {/* Cards */}
             <Row gutter={16, 16}>

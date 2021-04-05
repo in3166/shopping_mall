@@ -35,6 +35,16 @@ const productSchema = mongoose.Schema({
     }
 }, { timestamps: true })
 
+// search할 때 어디서 얻어올지, 가중치는 어떻게 둘지 설정
+productSchema.index({
+    title: 'text',
+    description: 'text'
+}, {
+    weights: {
+        title: 5,
+        description: 1
+    }
+})
 
 const Product = mongoose.model('Product', productSchema);
 
