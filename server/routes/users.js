@@ -3,11 +3,12 @@ const router = express.Router();
 const { User } = require("../models/User");
 
 const { auth } = require("../middleware/auth");
+const { Product } = require('../models/Product');
 
 //=================================
 //             User
 //=================================
-
+// 페이지 이동 시 마다 인증된 사람인지 토큰 인증된 사람이면 사용자 정보를 다시 넣어줌
 router.get("/auth", auth, (req, res) => {
     res.status(200).json({
         _id: req.user._id,
@@ -18,6 +19,8 @@ router.get("/auth", auth, (req, res) => {
         lastname: req.user.lastname,
         role: req.user.role,
         image: req.user.image,
+        cart: req.user.cart,
+        history: req.user.history
     });
 });
 
@@ -113,8 +116,24 @@ router.post("/addToCart", auth, (req, res) => {
                 )
             }
         })
+});
+
+router.get("/removeFromCart", auth, (req, res) => {
+    // user - userData - cart 에서 해당 상품 지우기, user- cartDetail 다시가져오기
+    User.findOneAndUpdate({ _id: req.user._id }, { "$pull": { "cart": { "id": req.query.id } } }, { new: true },
+        (err, userInfo) => {
+            let cart = userInfo.cart;
+            let array = cart.map(item => { return item.id });
 
 
+            // product collection에서 현재 남아있는 상품 정보 가져오기
+            Product.find({ _id: { $in: array } })
+                .populate('writer')
+                .exec((err, productInfo) => {
+                    if (err) return res.json({ success: false, err });
+                    return res.status(200).json({ productInfo, cart }); // user의 수량과 product 정보 합쳐야해서 두 개 보냄
+                });
+        });
 
 
 });

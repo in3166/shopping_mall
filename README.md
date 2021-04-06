@@ -4,7 +4,7 @@ React + Express + MongoDB
 cd C:/Users/yu/Desktop/study/react/inflearn/shopping_mall
 
 ## 주의 사항
-
+**!화살표 함수!**
 ```html
 <button onClick={()=>props.submitHandler(searchInputValue)}>Submit</button>
 ```

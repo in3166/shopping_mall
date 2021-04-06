@@ -92,13 +92,18 @@ router.get(`/products_by_id`, (req, res) => {
     // productid로 디비에서 정보 가져오기
     // 쿼리로 가져오기
     let type = req.query.type;
-    let productId = req.query.id;
+    let productIds = req.query.id;
 
-    Product.find({ _id: productId })
+    if (type === 'array') {
+        let ids = req.query.id.split(','); // id=123,345 => ids=[123, 345]
+        productIds = ids;
+    }
+
+    Product.find({ _id: { $in: productIds } }) // 배열 여러개 넣어줄 때 $in
         .populate('wirter')
         .exec((err, product) => {
             if (err) return res.status(400).send(err);
-            return res.status(200).send({ success: true, product });
+            return res.status(200).send(product);
         })
 });
 
