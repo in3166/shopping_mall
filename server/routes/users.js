@@ -68,4 +68,55 @@ router.get("/logout", auth, (req, res) => {
     });
 });
 
+router.post("/addToCart", auth, (req, res) => {
+    // 해당 user 정보 가져오기
+    User.findOne({ _id: req.user._id } // auth 미들웨어 -> 쿠키 속 토큰을 이용하여 유저 정보 가져와서 req.user에 저장
+        , (err, userInfo) => {
+            // 가져온 정보에서 카트에 넣으려는 상품 존재 여부 확인 (있으면 추가+1, 없으면 1)
+            let duplicate = false;
+            userInfo.cart.forEach(item => {
+                if (item.id === req.body.productId) duplicate = true;
+            });
+            if (duplicate) {
+                // 있을 때
+                User.findOneAndUpdate(
+                    { // 사람을 찾고 그 사람 정보안의 cart에서 상품정보를 찾음
+                        _id: req.user._id,
+                        "cart.id": req.body.productId
+                    },
+                    { $inc: { "cart.$.quantity": 1 } }, // 카트의 수량을 1 올림, $: Cart라는 Array안의 quantity 중에서 업데이트할 요소를 식별
+                    { new: true }, // 업데이트된 정보를 받아서 클라이언트에 주기 위해서 옵션 설정   
+                    (err, userInfo) => {
+                        if (err) return res.status(400).send({ success: false, err })
+                        res.status(200).send(userInfo.cart)
+                    }
+                )
+            } else {
+                // 없을 때
+                // 상픔 정보, 아이디, 개수 1, 날짜 정보
+                User.findOneAndUpdate(
+                    { _id: req.user._id },
+                    {
+                        $push: {
+                            cart: {
+                                id: req.body.productId,
+                                quantity: 1,
+                                data: Date.now()
+                            }
+                        }
+                    },
+                    { new: true }, // 업데이트된 정보를 받아서 클라이언트에 주기 위해서 옵션 설정   
+                    (err, userInfo) => {
+                        if (err) return res.status(400).send({ success: false, err })
+                        res.status(200).send(userInfo.cart)
+                    }
+                )
+            }
+        })
+
+
+
+
+});
+
 module.exports = router;

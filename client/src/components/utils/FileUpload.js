@@ -26,6 +26,7 @@ function FileUpload(props) {
             })
     }
 
+    // 여기서 서버에서도 해당 이미지파일 삭제할 수 있도록 해보기
     const deleteHandler = (image) => {
         const currentIndex = Images.indexOf(image);
         let newImages = [...Images];
