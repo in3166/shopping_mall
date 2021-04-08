@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { User } = require("../models/User");
+const { Product } = require('../models/Product');
+const { Payment } = require("../models/Payment");
 
 const { auth } = require("../middleware/auth");
-const { Product } = require('../models/Product');
+const async = require("async");
 
 //=================================
 //             User
@@ -136,6 +138,79 @@ router.get("/removeFromCart", auth, (req, res) => {
         });
 
 
+});
+
+router.post("/successBuy", auth, (req, res) => {
+    // 1. User Collection - history 필드 - 결제 정보 추가
+    let history = [];
+    let transactionData = {}; // user, data, product
+
+    req.body.cartDetail.forEach(item => {
+        history.push({
+            dateOfPurchase: Date.now(),
+            name: item.title,
+            id: item._id,
+            price: item.price,
+            quantity: item.quantity,
+            paymentId: req.body.paymentData.paymentId,
+        });
+    });
+
+    // 2. Payment Collection - 결제 정보 넣기
+    transactionData.user = {
+        id: req.user._id,
+        name: req.user._name,
+        email: req.user.email
+    }
+    transactionData.data = req.body.paymentData;
+    transactionData.product = history;
+
+    // history 정보 저장
+    User.findOneAndUpdate(
+        { _id: req.user._id },
+        { $push: { history: history }, $set: { cart: [] } }, // 배열 넣어주고, cart 데이터 빈걸로 set
+        { new: true },
+        (err, user) => {
+            if (err) return res.json({ success: false, err })
+
+            //payment에 transactionData 정보 저장
+            const payment = new Payment(transactionData)
+            payment.save((err, doc) => {
+                if (err) return res.json({ success: false, err })
+                // 3. Product Collection - Sold 필드 (팔린 갯수) - 올리기
+                // 상품 당 몇개 샀는지
+                let products = [];
+                doc.product.forEach(item => {
+                    products.push({ id: item.id, quantity: item.quantity })
+                })
+
+                // product.forEach(item=>{
+                //     Product.findOneAndUpdate(item.id)
+                // })
+                // for 문을 돌리지 않고 async 사용
+                async.eachSeries(products, (item, callback) => {
+                    Product.update(
+                        { _id: item._id },
+                        {
+                            $inc: {
+                                "sold": item.quantity
+                            },
+                        },
+                        { new: false },
+                        callback
+                    )
+                }, (err) => {
+                    if (err) return res.status(400).json({ success: false, err })
+                    res.status(200).json({
+                        success: true,
+                        cart: user.cart,
+                        cartDetail: []
+                    })
+                })
+
+            })
+        }
+    )
 });
 
 module.exports = router;
