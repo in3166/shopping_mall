@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Route, Switch } from "react-router-dom";
 import Auth from "../hoc/auth";
 // pages for this product
@@ -17,6 +17,11 @@ import HistoryPage from "./views/HistoryPage/HistoryPage"
 //false  logged in user can't go inside
 
 function App() {
+
+  useEffect(() => {
+    document.title = 'GoTrip'
+  }, [])
+
   return (
     <Suspense fallback={(<div>Loading...</div>)}>
       <NavBar />

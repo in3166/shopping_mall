@@ -27,6 +27,7 @@ function LoginPage(props) {
         email: initialEmail,
         password: '',
       }}
+
       validationSchema={Yup.object().shape({
         email: Yup.string()
           .email('Email is invalid')
@@ -35,6 +36,7 @@ function LoginPage(props) {
           .min(6, 'Password must be at least 6 characters')
           .required('Password is required'),
       })}
+
       onSubmit={(values, { setSubmitting }) => {
         setTimeout(() => {
           let dataToSubmit = {
@@ -66,6 +68,7 @@ function LoginPage(props) {
         }, 500);
       }}
     >
+      
       {props => {
         const {
           values,

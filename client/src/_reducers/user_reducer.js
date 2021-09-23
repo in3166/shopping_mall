@@ -38,7 +38,8 @@ export default function (state = {}, action) {
             } // cartDetail state를 만들어서 넣어줌, 
         case ON_SUCCESS_BUY:
             return {
-                ...state, cartDetail: action.payload.cartDetail,
+                ...state, 
+                cartDetail: action.payload.cartDetail,
                 userData: {
                     ...state.userData, cart: action.payload.cart
                 }
